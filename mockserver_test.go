@@ -43,7 +43,7 @@ func mustGet(t *testing.T, url string) (resp *http.Response) {
 	}
 
 	if resp.StatusCode != 200 {
-		t.Fatalf("Status was incorrect, expected 200, got: %v", resp.Status)
+		t.Fatalf("Status was incorrect, expected 200, got: %v", resp.StatusCode)
 	}
 
 	return
@@ -66,5 +66,19 @@ func TestStubEndpoint(t *testing.T) {
 
 	if string(respBody) != `{"foo":"bar"}` {
 		t.Errorf("Unexpected response body: %s", string(respBody))
+	}
+}
+
+func TestStubMalformedRequest(t *testing.T) {
+	handler := NewStubHandler()
+	ts := httptest.NewServer(handler)
+
+	postBody := bytes.NewBuffer([]byte("not JSON"))
+	resp, err := http.Post(ts.URL+"/stub", "application/json", postBody)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode != 400 {
+		t.Fatalf("Status was incorrect, expected 400, got: %v", resp.StatusCode)
 	}
 }

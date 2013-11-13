@@ -21,15 +21,13 @@ func (h *StubHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path == "/stub" && req.Method == "POST" {
 		var stub Stub
 		jsonDecoder := json.NewDecoder(req.Body)
-		// handle decode error
 		err := jsonDecoder.Decode(&stub)
 		if err != nil {
-			fmt.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
 		}
-		fmt.Printf("%#v\n", stub)
+
 		h.stubs[stub.Path] = stub
 	} else {
-		fmt.Printf("%#v\n", h.stubs)
 		if stub, ok := h.stubs[req.URL.Path]; ok {
 			if stub.Method == req.Method {
 				// TODO - handle errors

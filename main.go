@@ -33,6 +33,8 @@ func (h *StubHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			h.createStubHandler(w, req)
 		case "GET":
 			h.listStubsHandler(w, req)
+		case "DELETE":
+			h.deleteStubsHandler(w, req)
 		}
 	} else {
 		h.returnStubHandler(w, req)
@@ -73,6 +75,10 @@ func (h *StubHandler) listStubsHandler(w http.ResponseWriter, req *http.Request)
 	}
 
 	encoder.Encode(stubs)
+}
+
+func (h *StubHandler) deleteStubsHandler(w http.ResponseWriter, req *http.Request) {
+	h.stubs = make(map[string]Stub)
 }
 
 func NewStubHandler() *StubHandler {

@@ -124,6 +124,35 @@ func TestGetStubs(t *testing.T) {
 	}
 }
 
+func TestClear(t *testing.T) {
+	var stubs []Stub
+	handler := NewStubHandler()
+	ts := httptest.NewServer(handler)
+
+	stub := Stub{Method: "GET", Path: "/foo", Body: `{"foo":"bar"}`}
+	postBody := mustEncodeStub(t, stub)
+	mustPost(t, ts.URL+"/stubs", postBody)
+	resp := mustGet(t, ts.URL+"/stubs")
+	decoder := json.NewDecoder(bytes.NewBuffer(resp.body))
+	decoder.Decode(&stubs)
+	if len(stubs) != 1 {
+		t.Errorf("Expected one stub, got %d.", len(stubs))
+	}
+
+	client := http.Client{}
+	req, err := http.NewRequest("DELETE", ts.URL+"/stubs", bytes.NewBuffer([]byte("")))
+	client.Do(req)
+	if err != nil {
+		t.Error(err)
+	}
+	resp = mustGet(t, ts.URL+"/stubs")
+	decoder = json.NewDecoder(bytes.NewBuffer(resp.body))
+	decoder.Decode(&stubs)
+	if len(stubs) != 0 {
+		t.Errorf("Expected zero stubs, got %d.", len(stubs))
+	}
+}
+
 func TestStubMalformedRequest(t *testing.T) {
 	handler := NewStubHandler()
 	ts := httptest.NewServer(handler)

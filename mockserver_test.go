@@ -82,3 +82,17 @@ func TestStubMalformedRequest(t *testing.T) {
 		t.Fatalf("Status was incorrect, expected 400, got: %v", resp.StatusCode)
 	}
 }
+
+func TestUnhandledStub(t *testing.T) {
+	handler := NewStubHandler()
+	ts := httptest.NewServer(handler)
+
+	resp, err := http.Get(ts.URL + "/bar")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resp.StatusCode != 404 {
+		t.Fatalf("Status was incorrect, expected 404, got: %v", resp.StatusCode)
+	}
+}

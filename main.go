@@ -34,7 +34,7 @@ func (h *StubHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				_, _ = io.WriteString(w, stub.Body)
 			}
 		} else {
-			fmt.Println("not found")
+			w.WriteHeader(http.StatusNotFound)
 		}
 	}
 }

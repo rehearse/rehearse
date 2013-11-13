@@ -64,11 +64,7 @@ func (h *StubHandler) returnStubHandler(w http.ResponseWriter, req *http.Request
 			log.Printf("Could not send response to client due to: %v", err)
 		}
 	} else {
-		if h.fallbackHandler == nil {
-			w.WriteHeader(http.StatusNotFound)
-		} else {
-			h.fallbackHandler.ServeHTTP(w, req)
-		}
+		h.fallbackHandler.ServeHTTP(w, req)
 	}
 }
 
@@ -88,6 +84,7 @@ func (h *StubHandler) deleteStubsHandler(w http.ResponseWriter, req *http.Reques
 
 func NewStubHandler() *StubHandler {
 	var s StubHandler
+	s.fallbackHandler = http.HandlerFunc(http.NotFound)
 	s.stubs = make(map[string]Stub)
 	return &s
 }

@@ -69,6 +69,22 @@ func TestStubEndpoint(t *testing.T) {
 	}
 }
 
+func TestGetStubs(t *testing.T) {
+	var stubs []Stub
+	handler := NewStubHandler()
+	ts := httptest.NewServer(handler)
+
+	stub := Stub{Method: "GET", Path: "/foo", Body: `{"foo":"bar"}`}
+	postBody := mustEncodeStub(t, stub)
+	mustPost(t, ts.URL+"/stubs", postBody)
+	resp := mustGet(t, ts.URL+"/stubs")
+	decoder := json.NewDecoder(resp.Body)
+	decoder.Decode(&stubs)
+	if len(stubs) != 1 {
+		t.Errorf("Expected one stub, got %d.", len(stubs))
+	}
+}
+
 func TestStubMalformedRequest(t *testing.T) {
 	handler := NewStubHandler()
 	ts := httptest.NewServer(handler)

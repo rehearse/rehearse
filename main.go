@@ -27,8 +27,13 @@ func (h *StubHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	h.stubMutex.Lock()
 	defer h.stubMutex.Unlock()
 
-	if req.URL.Path == "/stubs" && req.Method == "POST" {
-		h.createStubHandler(w, req)
+	if req.URL.Path == "/stubs" {
+		switch req.Method {
+		case "POST":
+			h.createStubHandler(w, req)
+		case "GET":
+			h.listStubsHandler(w, req)
+		}
 	} else {
 		h.returnStubHandler(w, req)
 	}
@@ -60,6 +65,16 @@ func (h *StubHandler) returnStubHandler(w http.ResponseWriter, req *http.Request
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 	}
+}
+
+func (h *StubHandler) listStubsHandler(w http.ResponseWriter, req *http.Request) {
+	var stubs []Stub
+	encoder := json.NewEncoder(w)
+	for _, v := range h.stubs {
+		stubs = append(stubs, v)
+	}
+
+	encoder.Encode(stubs)
 }
 
 func NewStubHandler() *StubHandler {

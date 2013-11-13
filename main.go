@@ -27,7 +27,7 @@ func (h *StubHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	h.stubMutex.Lock()
 	defer h.stubMutex.Unlock()
 
-	if req.URL.Path == "/stub" && req.Method == "POST" {
+	if req.URL.Path == "/stubs" && req.Method == "POST" {
 		h.createStubHandler(w, req)
 	} else {
 		h.returnStubHandler(w, req)

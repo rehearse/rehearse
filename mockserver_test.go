@@ -55,7 +55,7 @@ func TestStubEndpoint(t *testing.T) {
 
 	stub := Stub{Method: "GET", Path: "/foo", Body: `{"foo":"bar"}`}
 	postBody := mustEncodeStub(t, stub)
-	mustPost(t, ts.URL+"/stub", postBody)
+	mustPost(t, ts.URL+"/stubs", postBody)
 
 	resp := mustGet(t, ts.URL+"/foo")
 
@@ -74,7 +74,7 @@ func TestStubMalformedRequest(t *testing.T) {
 	ts := httptest.NewServer(handler)
 
 	postBody := bytes.NewBuffer([]byte("not JSON"))
-	resp, err := http.Post(ts.URL+"/stub", "application/json", postBody)
+	resp, err := http.Post(ts.URL+"/stubs", "application/json", postBody)
 	if err != nil {
 		t.Fatal(err)
 	}

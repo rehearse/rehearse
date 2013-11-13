@@ -73,7 +73,7 @@ func (h *StubHandler) returnStubHandler(w http.ResponseWriter, req *http.Request
 }
 
 func (h *StubHandler) listStubsHandler(w http.ResponseWriter, req *http.Request) {
-	var stubs []Stub
+	stubs := make([]Stub, 0, len(h.stubs))
 	encoder := json.NewEncoder(w)
 	for _, v := range h.stubs {
 		stubs = append(stubs, v)

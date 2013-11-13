@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -31,6 +32,10 @@ func (h *StubHandler) createStubHandler(w http.ResponseWriter, req *http.Request
 	err := jsonDecoder.Decode(&stub)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		_, err = fmt.Fprintf(w, "Invalid JSON: %v", err)
+		if err != nil {
+			log.Printf("Could not send response to client due to: %v", err)
+		}
 	}
 
 	h.stubs[stub.Path] = stub

@@ -10,6 +10,12 @@ import (
 	"testing"
 )
 
+type processedResponse struct {
+	statusCode int
+	header     http.Header
+	body       []byte
+}
+
 func mustEncodeStub(t *testing.T, stub Stub) (buf *bytes.Buffer) {
 	buf = new(bytes.Buffer)
 	encoder := json.NewEncoder(buf)
@@ -19,32 +25,36 @@ func mustEncodeStub(t *testing.T, stub Stub) (buf *bytes.Buffer) {
 	return
 }
 
-func mustPost(t *testing.T, url string, body io.Reader) {
+func mustPost(t *testing.T, url string, body io.Reader) (pr *processedResponse) {
 	resp, err := http.Post(url, "application/json", body)
 	if err != nil {
 		t.Fatalf("Unable to POST: %v", err)
 	}
 
-	if resp.StatusCode != 200 {
-		t.Fatalf("Post failure - Status was incorrect, expected 200, got: %v", resp.Status)
-	}
-
-	err = resp.Body.Close()
-	if err != nil {
-		t.Fatalf("Closing response body failed: %v", err)
-	}
-}
-
-func mustGet(t *testing.T, url string) (resp *http.Response) {
-	var err error
-	resp, err = http.Get(url)
+	pr = &processedResponse{statusCode: resp.StatusCode, header: resp.Header}
+	pr.body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if resp.StatusCode != 200 {
-		t.Fatalf("Status was incorrect, expected 200, got: %v", resp.StatusCode)
+	resp.Body.Close()
+
+	return
+}
+
+func mustGet(t *testing.T, url string) (pr *processedResponse) {
+	resp, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
 	}
+
+	pr = &processedResponse{statusCode: resp.StatusCode, header: resp.Header}
+	pr.body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp.Body.Close()
 
 	return
 }
@@ -58,14 +68,43 @@ func TestStubEndpoint(t *testing.T) {
 	mustPost(t, ts.URL+"/stubs", postBody)
 
 	resp := mustGet(t, ts.URL+"/foo")
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Error(err)
+	if resp.statusCode != 200 {
+		t.Errorf("Status was incorrect, expected 200, got: %v", resp.statusCode)
 	}
 
-	if string(respBody) != `{"foo":"bar"}` {
-		t.Errorf("Unexpected response body: %s", string(respBody))
+	if string(resp.body) != `{"foo":"bar"}` {
+		t.Errorf("Unexpected response body: %s", string(resp.body))
+	}
+}
+
+func TestStubEndpointWithMultipleMethods(t *testing.T) {
+	handler := NewStubHandler()
+	ts := httptest.NewServer(handler)
+
+	stub := Stub{Method: "GET", Path: "/foo", Body: `get response`}
+	postBody := mustEncodeStub(t, stub)
+	mustPost(t, ts.URL+"/stubs", postBody)
+
+	stub = Stub{Method: "POST", Path: "/foo", Body: `post response`}
+	postBody = mustEncodeStub(t, stub)
+	mustPost(t, ts.URL+"/stubs", postBody)
+
+	resp := mustGet(t, ts.URL+"/foo")
+	if resp.statusCode != 200 {
+		t.Errorf("Status was incorrect, expected 200, got: %v", resp.statusCode)
+	}
+
+	if string(resp.body) != `get response` {
+		t.Errorf("Unexpected response body: %s", string(resp.body))
+	}
+
+	resp = mustPost(t, ts.URL+"/foo", &bytes.Buffer{})
+	if resp.statusCode != 200 {
+		t.Errorf("Status was incorrect, expected 200, got: %v", resp.statusCode)
+	}
+
+	if string(resp.body) != `post response` {
+		t.Errorf("Unexpected response body: %s", string(resp.body))
 	}
 }
 
@@ -78,7 +117,7 @@ func TestGetStubs(t *testing.T) {
 	postBody := mustEncodeStub(t, stub)
 	mustPost(t, ts.URL+"/stubs", postBody)
 	resp := mustGet(t, ts.URL+"/stubs")
-	decoder := json.NewDecoder(resp.Body)
+	decoder := json.NewDecoder(bytes.NewBuffer(resp.body))
 	decoder.Decode(&stubs)
 	if len(stubs) != 1 {
 		t.Errorf("Expected one stub, got %d.", len(stubs))

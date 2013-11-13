@@ -51,16 +51,14 @@ func (h *StubHandler) createStubHandler(w http.ResponseWriter, req *http.Request
 		}
 	}
 
-	h.stubs[stub.Path] = stub
+	h.stubs[stub.Method+stub.Path] = stub
 }
 
 func (h *StubHandler) returnStubHandler(w http.ResponseWriter, req *http.Request) {
-	if stub, ok := h.stubs[req.URL.Path]; ok {
-		if stub.Method == req.Method {
-			_, err := io.WriteString(w, stub.Body)
-			if err != nil {
-				log.Printf("Could not send response to client due to: %v", err)
-			}
+	if stub, ok := h.stubs[req.Method+req.URL.Path]; ok {
+		_, err := io.WriteString(w, stub.Body)
+		if err != nil {
+			log.Printf("Could not send response to client due to: %v", err)
 		}
 	} else {
 		w.WriteHeader(http.StatusNotFound)

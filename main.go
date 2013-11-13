@@ -6,10 +6,12 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync"
 )
 
 type StubHandler struct {
-	stubs map[string]Stub
+	stubs     map[string]Stub
+	stubMutex sync.Mutex
 }
 
 type Stub struct {
@@ -19,6 +21,12 @@ type Stub struct {
 }
 
 func (h *StubHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	// Always lock the stubs map for the duration of the request.
+	// Note that this effectively serializes all calls through StubHandler.
+	// As this is only used for testing this is deemed acceptable.
+	h.stubMutex.Lock()
+	defer h.stubMutex.Unlock()
+
 	if req.URL.Path == "/stub" && req.Method == "POST" {
 		h.createStubHandler(w, req)
 	} else {

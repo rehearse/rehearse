@@ -10,8 +10,9 @@ import (
 )
 
 type StubHandler struct {
-	stubs     map[string]Stub
-	stubMutex sync.Mutex
+	stubs           map[string]Stub
+	fallbackHandler http.Handler
+	stubMutex       sync.Mutex
 }
 
 type Stub struct {
@@ -63,7 +64,11 @@ func (h *StubHandler) returnStubHandler(w http.ResponseWriter, req *http.Request
 			log.Printf("Could not send response to client due to: %v", err)
 		}
 	} else {
-		w.WriteHeader(http.StatusNotFound)
+		if h.fallbackHandler == nil {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			h.fallbackHandler.ServeHTTP(w, req)
+		}
 	}
 }
 

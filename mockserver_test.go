@@ -180,3 +180,24 @@ func TestUnhandledStub(t *testing.T) {
 		t.Fatalf("Status was incorrect, expected 404, got: %v", resp.StatusCode)
 	}
 }
+
+func TestStubFallback(t *testing.T) {
+	handler := NewStubHandler()
+	handler.fallbackHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		_, err := io.WriteString(w, "fallback")
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	ts := httptest.NewServer(handler)
+
+	resp := mustGet(t, ts.URL+"/foo/bar")
+	if resp.statusCode != 200 {
+		t.Errorf("Status was incorrect, expected 200, got: %v", resp.statusCode)
+	}
+
+	if string(resp.body) != "fallback" {
+		t.Errorf("Unexpected response body: %#v", string(resp.body))
+	}
+}

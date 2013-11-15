@@ -2,7 +2,6 @@
 Rehearse provides a simple way to develop single page apps, completely decoupled from any back end. Rehearse will serve your static assets and stub server responses.
 
 ## Usage
----
 To use Rehearse, simply download the binary and start the server by running `rehearse` with any of the options given below:
 
 	-address -- The address for the stub server to bind to.
@@ -18,7 +17,6 @@ To stub out an endpoint, simply `POST` to `/stubs` with the following JSON:
 	}
 
 ## Contributing
----
 Fork this repo and run tests with:
 
 	go test
@@ -26,5 +24,4 @@ Fork this repo and run tests with:
 Create a feature branch, write your tests and code and submit a pull request.
 
 ## License
----
 MIT

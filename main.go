@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -23,5 +24,10 @@ func main() {
 		stubHandler.fallbackHandler = http.FileServer(http.Dir(config.path))
 	}
 	http.Handle("/", stubHandler)
-	http.ListenAndServe(fmt.Sprintf("%s:%d", config.address, config.port), stubHandler)
+
+	var err error
+	err = http.ListenAndServe(fmt.Sprintf("%s:%d", config.address, config.port), stubHandler)
+	if err != nil {
+		log.Fatalf("Unable to start server: %v\n", err)
+	}
 }

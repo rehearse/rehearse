@@ -201,3 +201,32 @@ func TestStubFallback(t *testing.T) {
 		t.Errorf("Unexpected response body: %#v", string(resp.body))
 	}
 }
+
+func TestLoad(t *testing.T) {
+	handler := NewStubHandler()
+	buff := new(bytes.Buffer)
+	json := `
+	[
+		{ "method": "GET", "path": "/foo", "body": "bar"},
+		{ "method": "GET", "path": "/baz", "body": "quz"}
+	]
+	`
+	buff.WriteString(json)
+
+	err := handler.load(buff)
+	if err != nil {
+		t.Fatalf("Unexpected error during load: %v", err)
+	}
+
+	ts := httptest.NewServer(handler)
+
+	resp := mustGet(t, ts.URL+"/foo")
+	if string(resp.body) != "bar" {
+		t.Errorf("Unexpected response body: %#v", string(resp.body))
+	}
+
+	resp = mustGet(t, ts.URL+"/baz")
+	if string(resp.body) != "quz" {
+		t.Errorf("Unexpected response body: %#v", string(resp.body))
+	}
+}

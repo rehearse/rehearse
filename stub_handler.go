@@ -42,6 +42,21 @@ func (h *StubHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func (h *StubHandler) load(r io.Reader) (err error) {
+	var stubs []Stub
+	jsonDecoder := json.NewDecoder(r)
+	err = jsonDecoder.Decode(&stubs)
+	if err != nil {
+		return
+	}
+
+	for _, stub := range stubs {
+		h.stubs[stub.Method+stub.Path] = stub
+	}
+
+	return
+}
+
 func (h *StubHandler) createStubHandler(w http.ResponseWriter, req *http.Request) {
 	var stub Stub
 	jsonDecoder := json.NewDecoder(req.Body)

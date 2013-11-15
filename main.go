@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	VERSION = "0.2.0pre"
+	VERSION = "0.2.0"
 )
 
 var options struct {

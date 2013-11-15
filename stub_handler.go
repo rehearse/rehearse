@@ -47,6 +47,8 @@ func (h *StubHandler) createStubHandler(w http.ResponseWriter, req *http.Request
 	jsonDecoder := json.NewDecoder(req.Body)
 	err := jsonDecoder.Decode(&stub)
 	if err != nil {
+		log.Printf("Invalid JSON: %v", err)
+
 		w.WriteHeader(http.StatusBadRequest)
 		_, err = fmt.Fprintf(w, "Invalid JSON: %v", err)
 		if err != nil {

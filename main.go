@@ -37,6 +37,8 @@ func main() {
 	}
 	http.Handle("/", stubHandler)
 
+	log.Printf("Starting rehearse on %s:%d", options.address, options.port)
+
 	var err error
 	err = http.ListenAndServe(fmt.Sprintf("%s:%d", options.address, options.port), stubHandler)
 	if err != nil {

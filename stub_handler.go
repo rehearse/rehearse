@@ -76,9 +76,10 @@ func (h *StubHandler) createStubHandler(w http.ResponseWriter, req *http.Request
 
 func (h *StubHandler) returnStubHandler(w http.ResponseWriter, req *http.Request) {
 	path := req.Method + req.URL.Path
+	query := req.URL.Query()
 
-	if req.URL.RawQuery != "" {
-		path += "?" + req.URL.RawQuery
+	if len(query) > 0 {
+		path += "?" + query.Encode()
 	}
 
 	if stub, ok := h.stubs[path]; ok {

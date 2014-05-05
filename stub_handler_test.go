@@ -82,6 +82,29 @@ func TestStubEndpoint(t *testing.T) {
 	}
 }
 
+func TestStubEndpointWithQuerystring(t *testing.T) {
+	handler := NewStubHandler()
+	ts := httptest.NewServer(handler)
+
+	stub := Stub{Method: "GET", Path: "/foo", Body: `{"foo":"bar"}`}
+	stubWithQuery := Stub{Method: "GET", Path: "/foo?bar=baz", Body: `{"baz":"bur"}`}
+
+	postBody := mustEncodeStub(t, stub)
+	mustPost(t, ts.URL+"/stubs", postBody)
+
+	postBody = mustEncodeStub(t, stubWithQuery)
+	mustPost(t, ts.URL+"/stubs", postBody)
+
+	resp := mustGet(t, ts.URL+"/foo?bar=baz")
+	if resp.statusCode != 200 {
+		t.Errorf("Status was incorrect, expected 200, got: %v", resp.statusCode)
+	}
+
+	if string(resp.body) != `{"baz":"bur"}` {
+		t.Errorf("Unexpected response body: %s", string(resp.body))
+	}
+}
+
 func TestStubEndpointWithMultipleMethods(t *testing.T) {
 	handler := NewStubHandler()
 	ts := httptest.NewServer(handler)

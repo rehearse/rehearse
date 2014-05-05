@@ -75,7 +75,13 @@ func (h *StubHandler) createStubHandler(w http.ResponseWriter, req *http.Request
 }
 
 func (h *StubHandler) returnStubHandler(w http.ResponseWriter, req *http.Request) {
-	if stub, ok := h.stubs[req.Method+req.URL.Path]; ok {
+	path := req.Method + req.URL.Path
+
+	if req.URL.RawQuery != "" {
+		path += "?" + req.URL.RawQuery
+	}
+
+	if stub, ok := h.stubs[path]; ok {
 		_, err := io.WriteString(w, stub.Body)
 		if err != nil {
 			log.Printf("Could not send response to client due to: %v", err)

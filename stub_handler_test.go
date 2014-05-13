@@ -154,6 +154,20 @@ func TestStubEndpointWithMultipleMethods(t *testing.T) {
 	}
 }
 
+func TestStubEndpointWithHeaders(t *testing.T) {
+	handler := NewStubHandler()
+	ts := httptest.NewServer(handler)
+
+	stub := Stub{Method: "GET", Path: "/foo", Body: `get response`, Status: 404}
+	postBody := mustEncodeStub(t, stub)
+	mustPost(t, ts.URL+"/stubs", postBody)
+
+	resp := mustGet(t, ts.URL+"/foo")
+	if resp.statusCode != 404 {
+		t.Errorf("Status was incorrect, expected 404, got: %v", resp.statusCode)
+	}
+}
+
 func TestGetStubs(t *testing.T) {
 	var stubs []Stub
 	handler := NewStubHandler()

@@ -19,6 +19,7 @@ type Stub struct {
 	Method string `json:"method"`
 	Path   string `json:"path"`
 	Body   string `json:"body"`
+	Status int    `json:"status"`
 }
 
 func (h *StubHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -83,6 +84,10 @@ func (h *StubHandler) returnStubHandler(w http.ResponseWriter, req *http.Request
 	}
 
 	if stub, ok := h.stubs[path]; ok {
+		if stub.Status != 0 {
+			w.WriteHeader(stub.Status)
+		}
+
 		_, err := io.WriteString(w, stub.Body)
 		if err != nil {
 			log.Printf("Could not send response to client due to: %v", err)
